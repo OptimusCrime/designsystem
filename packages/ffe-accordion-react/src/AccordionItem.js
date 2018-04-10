@@ -11,76 +11,52 @@ const createClasses = (baseClass, isOpen, type) =>
     });
 
 class AccordionItem extends Component {
-    constructor(props) {
-        super();
-        this.state = {
-            isOpen: props.isOpen || false,
-        };
+    state = {
+        isOpen: this.props.isOpen || false,
+    };
 
-        this.onClick = this.onClick.bind(this);
-        this.onClickEnterAndSpace = this.onClickEnterAndSpace.bind(this);
+    getIsOpen() {
+        if (this.props.isOpen !== undefined) {
+            return this.props.isOpen;
+        }
+        return this.state.isOpen;
     }
 
-    onClick(e) {
+    onClick = e => {
         if (
             this.props.ignoredNodeNames.some(name => name === e.target.nodeName)
         ) {
             return;
         }
         this.toggle();
-    }
+    };
 
-    onClickEnterAndSpace(event) {
+    onClickEnterAndSpace = e => {
         const enterKey = 13;
         const spaceBar = 32;
-        if ([enterKey, spaceBar].includes(event.keyCode)) {
-            this.onClick(event);
+        if ([enterKey, spaceBar].includes(e.keyCode)) {
+            this.onClick(e);
         }
-    }
+    };
 
-    toggle() {
-        const { isOpen } = this.state;
-
-        if (isOpen) {
-            this.props.onClose();
-        } else {
-            this.props.onOpen();
-        }
-
+    toggle = () => {
+        const isOpen = this.getIsOpen();
+        this.props.onToggle(!isOpen);
         this.setState({ isOpen: !isOpen });
-    }
-
-    renderExpandedContent() {
-        const { isOpen } = this.state;
-        const { children, index, type, uuid } = this.props;
-
-        return (
-            <div
-                className={createClasses(
-                    'ffe-accordion-item__content',
-                    isOpen,
-                    type,
-                )}
-                role="tabpanel"
-                id={`panel-${uuid}-${index}`}
-                aria-hidden={!isOpen}
-                aria-labelledby={`tab-${uuid}-${index}`}
-            >
-                {children}
-            </div>
-        );
-    }
+    };
 
     render() {
-        const { isOpen } = this.state;
         const {
             ariaLabel,
+            children,
             hasNestedCollapse,
             index,
             type,
             title,
             uuid,
         } = this.props;
+
+        const isOpen = this.getIsOpen();
 
         return (
             <li className={createClasses('ffe-accordion-item', isOpen, type)}>
@@ -116,7 +92,19 @@ class AccordionItem extends Component {
                     hasNestedCollapse={hasNestedCollapse}
                     isOpened={isOpen}
                 >
-                    {this.renderExpandedContent()}
+                    <div
+                        className={createClasses(
+                            'ffe-accordion-item__content',
+                            isOpen,
+                            type,
+                        )}
+                        role="tabpanel"
+                        id={`panel-${uuid}-${index}`}
+                        aria-hidden={!isOpen}
+                        aria-labelledby={`tab-${uuid}-${index}`}
+                    >
+                        {children}
+                    </div>
                 </Collapse>
             </li>
         );
@@ -134,12 +122,10 @@ AccordionItem.propTypes = {
     ignoredNodeNames: arrayOf(string),
     /** The index of the accordion item in the current accordion */
     index: number,
-    /** Specifies whether the accordion item is initially open */
+    /** Specifies whether the accordion item is open. Controls the isOpen state if set */
     isOpen: bool,
-    /** Callback that fires whenever the accordion item closes */
-    onClose: func,
-    /** Callback that fires whenever the accordion item opens */
-    onOpen: func,
+    /** Callback that fires whenever the accordion item is opened or closed */
+    onToggle: func,
     /** The title */
     title: node,
     /**
@@ -155,8 +141,7 @@ AccordionItem.propTypes = {
 AccordionItem.defaultProps = {
     hasNestedCollapse: false,
     ignoredNodeNames: [],
-    onClose: f => f,
-    onOpen: f => f,
+    onToggle: f => f,
 };
 
 export default AccordionItem;

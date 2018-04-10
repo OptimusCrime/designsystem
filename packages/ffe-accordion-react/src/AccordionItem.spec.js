@@ -23,6 +23,14 @@ describe('<AccordionItem />', () => {
             const wrapper = getWrapperWithExpandedContent({ isOpen: true });
             expect(wrapper.state('isOpen')).toBe(true);
         });
+        it('can be controlled from the outside', () => {
+            const wrapper = getWrapperWithExpandedContent({ isOpen: false });
+            expect(wrapper.find('Collapse').prop('isOpened')).toBe(false);
+
+            wrapper.setProps({ isOpen: true });
+
+            expect(wrapper.find('Collapse').prop('isOpened')).toBe(true);
+        })
         it('it toggled by clicking', () => {
             const wrapper = getWrapperWithExpandedContent();
             wrapper
@@ -54,27 +62,25 @@ describe('<AccordionItem />', () => {
             }); // esc
             expect(wrapper.state('isOpen')).toBe(false);
         });
-        it('toggling triggers onOpen and onClose props', () => {
-            const onOpenSpy = sinon.spy();
-            const onCloseSpy = sinon.spy();
+        it('toggling onToggle props', () => {
+            const onToggleSpy = jest.fn();
 
             const wrapper = getWrapperWithExpandedContent({
-                onOpen: onOpenSpy,
-                onClose: onCloseSpy,
+                onToggle: onToggleSpy,
             });
             wrapper
                 .find('.ffe-accordion-item__toggler')
                 .simulate('click', { target: { nodeName: 'div' } });
 
-            expect(onOpenSpy.callCount).toBe(1);
-            expect(onCloseSpy.callCount).toBe(0);
+            expect(onToggleSpy).toHaveBeenCalledTimes(1);
+            expect(onToggleSpy).toHaveBeenCalledWith(true);
 
             wrapper
                 .find('.ffe-accordion-item__toggler')
                 .simulate('click', { target: { nodeName: 'div' } });
 
-            expect(onOpenSpy.callCount).toBe(1);
-            expect(onCloseSpy.callCount).toBe(1);
+                expect(onToggleSpy).toHaveBeenCalledTimes(2);
+                expect(onToggleSpy).toHaveBeenCalledWith(false);
         });
     });
 });
